@@ -1,0 +1,489 @@
+<div class="ui basic horizontal segments" style="width:105%;height:100%;border:0;margin-left:0%;top:-4%;">
+    <div class="ui grid" style="height:100%">
+        <div class="six wide computer column">
+          <div class="ui segments" style="height:100%;">
+            <div class="ui segment">
+              <h5 class="ui header" id="title_panel1">Contactos</h5>
+            </div>
+            <div class="ui left aligned segment no-padding">
+              <!-- chats privates -->
+              <div id="contentUsersPrivate" style="height:173px;width:100%;overflow-y: scroll;display:none;">
+                <ul id="usersPrivates"></ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      <div class="seven wide computer column">
+      <div class="ui segments" style="height:100%;">
+        <div class="ui segment">
+          <div id="user-data-chat-private">
+            <h5 class="ui header">
+              Sin chat privados<label class="channel"></label>
+            </h5>
+          </div>
+        </div>
+
+        <div class="ui left aligned segment">
+          <input type="hidden" value="General" class="channel">
+          <div id="messages" style="height:160px;width:100%;overflow-y: scroll;"></div>
+          <form class="ui form" onsubmit="return addMessage(this)">
+            <input type="hidden" id="private" name="private" class="private">
+            <input type="hidden" id="idDestinatario" name="idDestinatario" class="private">
+            <input type="hidden" id="userDestinatario" name="userDestinatario" class="private">
+            <div class="ui mini form">
+              <label class="nick">Nick</label>
+              <div class="ui icon input nick">
+                <input type="text" id="username" placeholder="ingresa tu nick" class="nick" required>
+              </div>
+              <div class="ui icon input chat" style="margin-top: 2%;">
+                <input type="text" id="texto" placeholder="ingresa tu mensaje" name="message-to-send" style="width: 86%;" required>
+                <a href="#" onclick="seemoji()" class="user_emojis" style="height: 0%;margin-top: 5%;margin-left: -15%; display: none;">
+                  <i class="large yellow icon smile outline"></i>
+                </a>
+                <button class="circular ui blue icon button" style="margin-left: 2%;margin-top: 0%;" onclick="chkNick()">
+                  <i class="icon send"></i>
+                </button>
+              </div>
+              <div class="ui segment" id="emojis" style="overflow-y: scroll;overflow-x: hidden;width:100%;height:110px;display:none;margin-top: -20%;"></div>
+            </div>
+          </form>
+        </div>
+      </div>
+      </div>
+
+    </div>
+  </div>
+<script type="text/javascript">
+$(document).ready(() => {
+    $.getJSON('https://unpkg.com/emoji.json@11.0.1/emoji.json', (data) => {
+      $.each(data, (key, value) => {
+        $('#emojis').append(`<a id='${key}' href='#${key}'
+        onclick='sendEmoji(id,this)'>${value.char}</a>`);
+      })
+    })
+
+    chkNick()
+
+    privilegios()
+    //lista de canales
+    // getChannel()
+
+    //set canal actual
+    //$('.channel').val($('.channel').text())
+
+    //addMeList()
+
+  });
+
+  let productList = document.createElement('ul')
+
+  const myHeaders = new Headers()
+
+  myHeaders.append('authorization', `Bearer ${localStorage.token}`)
+
+  function seemoji() {
+
+    if ($('#emojis').is(':visible'))
+      $('#emojis').hide()
+    else
+      $('#emojis').show()
+
+  }
+
+  //menu
+  // $( "#showUsers" ).click(function() {
+  //
+  //   $('#contentUsers').show()
+  //   $('#contentUsers').css({
+  //     "height": "206px"
+  //   })
+  //   $('#contentChannels').hide()
+  //   $('#contentUsersPrivate').hide()
+  //   $('.user_vip').hide()
+  //   $('#title_panel1').text('Lista de usuarios')
+  //
+  //   if ($('#messages_privates').is(":visible"))
+  //     $('#messages_privates').hide()
+  //
+  //   if ($('#messages').is(":hidden"))
+  //     $('#messages').show()
+  //
+  //   if ($('#user-data').is(":hidden"))
+  //     $('#user-data').show()
+  //
+  //   if ($('#user-data-chat-private').is(":visible"))
+  //     $('#user-data-chat-private').hide()
+  // })
+  //
+  // $( "#showChannels" ).click(function() {
+  //
+  //   $('#title_panel1').text('Lista de canales')
+  //   $('#contentUsers').hide()
+  //   $('#contentUsersPrivate').hide()
+  //   $('#contentChannels').show()
+  //   privilegios()
+  //
+  //   if ($('#messages_privates').is(":visible"))
+  //     $('#messages_privates').hide()
+  //
+  //   if ($('#messages').is(":hidden"))
+  //     $('#messages').show()
+  //
+  //   if ($('#user-data').is(":hidden"))
+  //     $('#user-data').show()
+  //
+  //   if ($('#user-data-chat-private').is(":visible"))
+  //     $('#user-data-chat-private').hide()
+  //
+  // })
+  //
+  // $( "#showChatPrivate" ).click(function() {
+  //
+  //   $('#contentUsersPrivate').show()
+  //   $('#contentUsersPrivate').css({
+  //     "height": "206px"
+  //   })
+  //
+  //   $('#contentUsers').hide()
+  //   $('#contentChannels').hide()
+  //   $('.user_vip').hide()
+  //   $('#messages').hide()
+  //   $('#messages_privates').show()
+  //
+  //   if ($('#messages').is(":visible"))
+  //     $('#messages').hide()
+  //
+  //   if ($('#messages_privates').is(":hidden"))
+  //     $('#messages_privates').show()
+  //
+  //   if ($('#user-data').is(":visible"))
+  //     $('#user-data').hide()
+  //
+  //   if ($('#user-data-chat-private').is(":hidden"))
+  //     $('#user-data-chat-private').show()
+  // })
+
+  //si es usuario comun no ve clase vip
+  function isUser() {
+
+    var estado
+
+    if ( localStorage.getItem("token") == null || localStorage.getItem("token") == 'undefined' ) {
+      estado = false
+    } else {
+      estado = true
+    }
+
+    return estado
+  }
+
+  function getNick() {
+
+    var nick = 'sin nick';
+
+    if (localStorage.getItem('user') != '') {
+        nick = localStorage.getItem('user')
+    }
+
+    return nick
+  }
+
+  // function addMeList() {
+  //
+  //   var id = '01'
+  //
+  //   $('#users').append(`<li><a id='${id}' href='#${getNick()}'><u>${getNick()}</u></a></li>`)
+  //
+  // }
+
+  function privilegios() {
+    if ( isUser() ) {
+      $('.user_vip').show();
+      $('.user_log').hide();
+      $('.user_logout').show();
+      $('.user_emojis').show();
+      if ($('#showUsers').is(":hidden"))
+        $('#showUsers').show();
+    } else {
+      if ($('#showUsers').is(":visible"))
+        $('#showUsers').hide();
+      $('.user_log').show();
+      $('.user_logout').hide();
+      $('.user_emojis').hide();
+      $('#contentChannels').css({
+        "height": "206px"
+      });
+      $('#0').removeAttr('onclick');
+    }
+  }
+
+  function chkNick() {
+
+    var user;
+
+    if (localStorage.getItem('username') != null) {
+      user = localStorage.getItem('username')
+      $('#username').val(user)
+    } else
+        user = $('#username').val();
+
+    setUserData(user);
+
+    if (user != '')
+      $('.nick').hide();
+
+  }
+
+  // function chkChannel(li) {
+  //
+  //   $('.channel').val($(`#${li}`).text())
+  //   $('.channel').text($(`#${li}`).text())
+  //   $('#user-data').text('Chat ' + $(`#${li}`).text())
+  //   $('#messages').empty()
+  //   addMessage(null)
+  //
+  // }
+
+  function chatPrivate(id,username) {
+
+    $('#showChatPrivate').click()
+    //$('#usersPrivates').append(`<li><a id='${$('#users u')[0].parentNode.id}' href='#${getNick()}'><u>${getNick()}</u></a></li>`)
+    $('#usersPrivates').append(`<li><a id='${id}' href='#${username}'><u>${username}</u></a></li>`)
+    $('#user-data-chat-private').text(`Chat con ${username}`)
+    $('#userDestinatario').val(username)
+    $('#idDestinatario').val(id)
+    $('#private').val(1)
+  }
+
+  function chkUser(data) {
+
+    if ( $("#01").length > 0 )
+      $("#01").attr("id",data.id)
+
+    if ( !$(`#${data.id}`).length > 0 )
+      $('#users').append(`<li><a id='${data.id}' href='#${data.author}' onclick='chatPrivate("${data.id}","${data.author}")'>${data.author}</a></li>`)
+
+  }
+
+  // function addChannel() {
+  //   if ($('#channel').val() != '') {
+  //     if ($('#username').val() != '') {
+  //       if (compareChannel($('#channel').val())) {
+  //         messageError('El canal que intenta crear ya existe!');
+  //       } else {
+  //         var newid = ($('#canales li a').last().prevObject.length) + 1;
+  //         persistChannel($('#channel').val());
+  //         $('#canales').append(`<li><a id='${newid}' href='#${$(`#channel`).val()}' onclick='chkChannel(id)'>${$('#channel').val()}</a></li>`);
+  //         messagePositive('Canal creado con exito.');
+  //         $('#channel').val('');
+  //       }
+  //     } else {
+  //       messageError('Antes tienes que ingresar un nick para poder crear un canal.');
+  //     }
+  //   } else {
+  //     messageError('Debe ingresar un nombre para el canal.');
+  //   }
+  // }
+
+  // function getChannel() {
+  //
+  //   fetch('/api/channel', {
+  //     method: 'GET',
+  //     headers: myHeaders
+  //   })
+  //   .then(res => res.json())
+  //   .then(data => {
+  //     if ( isUser() ) {
+  //       data.channels.map(channel => {
+  //         $('#canales').append(`<li><a id='${channel._id}' href='#${channel.name}' onclick='chkChannel(id)'>${channel.name}</a></li>`);
+  //       })
+  //     }
+  //   })
+  // }
+
+  // function compareChannel(channel) {
+  //   var existe = false;
+  //
+  //   $.map( $('#canales li'), ( datos, index ) => {
+  //     if (datos.textContent == channel) {
+  //       existe = true;
+  //       console.log(datos.textContent);
+  //     }
+  //   })
+  //
+  //   console.log('canal existe: ' + existe);
+  //
+  //   return existe;
+  // }
+
+  function messagePositive(msj) {
+    $('#muy_bien').append(`<p>${msj}</p>`);
+    $('#positive').show();
+    setTimeout(function () {
+      $('#positive').hide();
+    }, 3000);
+  }
+
+  function setUserData(user) {
+    localStorage.setItem('user', user);
+  }
+
+  function getUserData() {
+    var userData = {
+      username: localStorage.getItem('user'),
+      token: localStorage.getItem('token'),
+    };
+
+    return userData;
+  }
+
+  function sendEmoji(idEmoji) {
+    $('#texto').val($('#texto').val() + ' ' + $(`#${idEmoji}`).text());
+    seemoji();
+  }
+
+  //main
+  var socket = io();
+
+  socket.on('messages', function (data) {
+    render(data, $('.channel').val());
+  });
+
+  socket.on('userSocket', (data) => {
+    chkUser(data);
+  });
+
+  socket.on('hey', (data) => {
+    renderChatPrivate(data);
+  });
+
+  function render(data, channel) {
+    var html = data.map(function (element, index) {
+      if (element.room == channel) {
+        return (`<div>
+                  <strong>${element.author}</strong>:
+                  <em>${element.text}</em>
+                </div>`);
+      }
+    }).join(' ');
+
+    document.getElementById('messages').innerHTML = html;
+  }
+
+  function renderChatPrivate(data) {
+
+    if (data.author == data.username_remitente)
+      var html = `<div><strong>${data.author}</strong>: <em>${data.text}</em></div>`
+
+    $('#messages_privates').html(html)
+    $('#showChatPrivate').transition('tada')
+    $('#user-data-chat-private').text(`Chat con ${data.username_remitente}`)
+    $('#usersPrivates').append(`<li><a id='${data.id_remitente}' href='#${data.username_remitente}' onclick='chatPrivate("${data.id_remitente}","${data.username_remitente}")'>${data.username_remitente}</a></li>`)
+
+  }
+
+  function addMessage(e) {
+
+    var payload
+
+    if (e != null) {
+
+      if ( $('#private').val() == 1 ) {
+
+        if ( $('#users u')[0].tagName == 'U' && $('#users u')[0].textContent == getNick())
+          var id_remit = $('#users u')[0].parentNode.id
+
+        payload = {
+          msj: true,
+          room: '',
+          author: $('#username').val(),
+          text: $('#texto').val(),
+          id_remitente: id_remit,
+          username_remitente: getNick(),
+          id_destino: $('#idDestinatario').val(),
+          user_destino: $('#userDestinatario').val(),
+        }
+
+        socket.emit('chatPrivate', payload)
+      }
+
+      payload = {
+        msj: true,
+        room: $('.channel').val(),
+        author: $('#username').val(),
+        text: $('#texto').val(),
+      }
+    } else {
+      payload = {
+        msj: false,
+        room: $('.channel').val(),
+        author: $('#username').val(),
+        text: $('#texto').val(),
+      }
+    }
+
+    if ( $('#private').val() != 1 ) {
+      if (payload.room != '')
+        socket.emit('subscribe', payload);
+
+      if (payload.text != '')
+        socket.emit('new-message', payload);
+    }
+
+    $('#private').val('');
+    $('#texto').val('');
+    return false;
+  }
+
+  function addMessagePrivate(e) {
+
+    var payload
+
+    if ( $('#users u')[0].tagName == 'U' && $('#users u')[0].textContent == getNick())
+      var id_remit = $('#users u')[0].parentNode.id
+
+    payload = {
+      msj: true,
+      room: '',
+      author: $('#username').val(),
+      text: $('#texto').val(),
+      id_remitente: id_remit,
+      username_remitente: getNick(),
+      id_destino: $('#idDestinatario').val(),
+      user_destino: $('#userDestinatario').val(),
+    }
+
+    socket.emit('chatPrivate', payload)
+    $('#texto').val('');
+
+    return false;
+  }
+
+  function logout() {
+    window.location.replace("login");
+    localStorage.clear();
+  }
+
+  function persistChannel(nameChanell) {
+
+    const myPost = {
+      name: nameChanell,
+      user: localStorage.getItem('username'),
+      //password: $('#pass').val()
+    }
+
+    const options = {
+      method: 'POST',
+      body: JSON.stringify(myPost),
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    };
+
+    fetch('/api/channel', options)
+      .then(res => res.json())
+      .then(data => {
+        console.log(data);
+      })
+  }
+</script>

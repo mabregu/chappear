@@ -1,0 +1,89 @@
+<div class="ui middle aligned center aligned grid">
+  <div class="column" style="width: auto;">
+    <h2 class="ui teal image header">
+      <div class="content">
+        Create account
+      </div>
+    </h2>
+    <form class="ui large form" id="signup" method="post">
+      <div class="ui stacked segment">
+        <div class="field">
+          <div class="ui left icon input">
+            <i class="user icon"></i>
+            <input id="displayName" name="displayName" placeholder="Display name" required>
+          </div>
+        </div>
+        <div class="field">
+          <div class="ui left icon input">
+            <i class="icon send"></i>
+            <input id="email" type="email" name="email" placeholder="E-mail address" required>
+          </div>
+        </div>
+        <div class="field">
+          <div class="ui left icon input">
+            <i class="lock icon"></i>
+            <input id="pass" type="password" name="password" placeholder="Password" required>
+          </div>
+        </div>
+
+        <!-- message error -->
+        <div class="ui mini negative message" id="error" style="display:none;margin-top:-35%;">
+          <div class="header">Ocurrio un error</div>
+          <ul class="list" id="msj_error"></ul>
+        </div>
+
+        <input class="ui fluid large teal submit button" onclick="sends(event)" type="submit" value="Sign Up">
+      </div>
+
+    </form>
+    <div class="ui message">
+      <a href="/">Just talk</a>
+    </div>
+  </div>
+</div>
+
+<script type="text/javascript">
+
+function sends(event) {
+  event.preventDefault()
+  const myPost = {
+    email: $('#email').val(),
+    displayName: $('#displayName').val(),
+    password: $('#pass').val(),
+  }
+
+  if ( myPost.email == '' || myPost.displayName == '' || myPost.password == '') {
+    messageError('¡Faltan datos!')
+  } else if (!isEmail(myPost.email)) {
+    messageError('¡Correo no valido!')
+  } else {
+    const options = {
+      method: 'POST',
+      body: JSON.stringify(myPost),
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    };
+
+    fetch('/api/signup', options)
+      .then(res => res.json())
+      .then(data => {
+
+        if ( data.estado ) {
+          localStorage.setItem('token', data.token)
+          window.location.replace("login")
+        } else if ( data.message.indexOf("duplicate key") != -1 ) {
+            messageError('Ese email ya fue registrado.')
+        } else {
+          messageError('Lo sentimos, ocurrio un problema, intente más tarde.')
+        }
+
+      })
+  }
+}
+
+function isEmail(email) {
+  var regex = /^([a-zA-Z0-9_.+-])+\@(([a-zA-Z0-9-])+\.)+([a-zA-Z0-9]{2,4})+$/;
+  return regex.test(email);
+}
+</script>

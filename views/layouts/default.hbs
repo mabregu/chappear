@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Chat chanels</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/1.11.8/semantic.min.css"/>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/1.11.8/semantic.min.js"></script>
+    <script src="/socket.io/socket.io.js" charset="utf-8"></script>
+    <script>
+      $(document).ready(() => {
+
+        if ( window.location.pathname == '/login' || window.location.pathname == '/signup' )
+          $('#menu').hide()
+
+        $('.ui.menu a.item').on('click', () => {
+          $(this)
+          .addClass('active')
+          .siblings()
+          .removeClass('active')
+        })
+
+        //no es usuario registrado
+        if( localStorage.getItem('token') === "undefined" || localStorage.getItem('token') === null ) {
+          $('#showUsers').hide()
+          $('#showChatPrivate').hide()
+          $('.user_vip').hide()
+        }
+
+      })
+
+      function messageError(msj) {
+        $('#msj_error li').remove();
+        $('#msj_error').append(`<li>${msj}</li>`);
+        $('#error').show();
+        setTimeout(() => {
+          $('#error').hide();
+        }, 3000);
+      }
+
+    </script>
+  </head>
+  <body>
+  <div class="row">
+    <div class="sixteen wide tablet sixteen wide computer column">
+      <div class="ui segments">
+        <div class="ui segment">
+          <!-- <div class="ui small menu borderless stackable" id="menu" style="width: 97%;"> -->
+          <div class="ui small menu stackable" id="menu">
+            <a id="showChannels" class="active item">Channel</a>
+            <a id="showUsers" class="item">User</a>
+            <a id="showChatPrivate" class="item">Chat private</a>
+            <div class="right menu">
+              <div class="item hiddenui user_log">
+                <a href="login" class="ui primary button">Sign In</a>
+              </div>
+              <div class="item hiddenui user_log">
+                <a href="signup" class="ui primary button">Sign Up</a>
+              </div>
+              <div class="item hiddenui user_logout">
+                <a href="#" class="ui primary button" onclick="logout()">Sign Out</a>
+              </div>
+            </div>
+          </div>
+          {{{ body }}}
+        </div>
+      </div>
+    </div>
+  </div>
+  </body>
+</html>
